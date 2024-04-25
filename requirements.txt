@@ -1,3 +1,6 @@
 datasets
 mypy
 pandas
+transformers
+tensorflow
+tf-keras
