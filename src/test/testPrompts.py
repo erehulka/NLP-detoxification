@@ -1,10 +1,10 @@
+from cmd import PROMPT
 import datetime
+import json
 import pandas as pd
 import sys
-import signal
 
 from src.utils.api import callLlamaApi
-
 
 PROMPTS = {
   'v1.0': 'Given a toxic piece of text, re-write it in a non-toxic way while saving the main content as much as possible. The result must be in the same language as the original text. Please provide only the rewritten text with no additional info. "{phrase}"',
@@ -28,29 +28,19 @@ PROMPTS = {
   """,
 }
 
-print(callLlamaApi(PROMPTS['v3.0'].format(phrase="holy shit , just finished the season and it is so good but so * dark * , especially at the end .")))
-
 if len(sys.argv) != 2:
   raise Exception("Input csv file must be specified")
 
-input = pd.read_csv(sys.argv[1], sep='\t')
-input['neutral_sentence'] = 'x'
+input = pd.read_json(sys.argv[1])
 
-def signal_handler(sig, frame):
+for key, prompt in PROMPTS.items():
+  output = []
+  for index, row in input.iterrows():
+    detoxified = callLlamaApi(prompt.format(phrase=row['text']))
+    if detoxified[0] == "\"":
+      detoxified = detoxified[1:-1]
+    output.append({'id': row['id'], 'text': detoxified})
+
   now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-  input.to_csv(f'outputs/{now}.tsv', sep='\t', index=False)
-  sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
-
-for index, row in input.iterrows():
-  if row['lang'] != 'en':
-    continue
-  detoxified = callLlamaApi(PROMPTS['v3.0'].format(phrase=row['toxic_sentence']))
-  if detoxified[0] == "\"":
-    detoxified = detoxified[1:-1]
-  input.at[index, 'neutral_sentence'] = detoxified
-  print(index, row['toxic_sentence'], detoxified)
-
-now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-input.to_csv(f'outputs/{now}.tsv', sep='\t', index=False)
+  with open('{key}.jsonl', 'w', encoding='utf-8') as f:
+    json.dump(output, f, ensure_ascii=False, indent=4)
