@@ -65,7 +65,7 @@ PROMPTS = {
     - Input: "keep crying me a river , bitch boy .", your response: "keep crying me a river , ya boy .",
     - Input: "until feminists take on islam and how it treats women , the entire movement is a total farce !", your response: "Feminism is not a good movement",
     - Input: "countless crap has been spotted by me .", your response: "countless wrong things has been spotted by me .",
-    or in other languages: TODO
+    or in other languages:
     - Input (in Russian): "ну и выродки,это твой ребёнок,зачем ты сучка рожала.", your response: "ну и люди,это твой ребёнок,зачем ты рожала."
     - Input (in Amharic): "ገልቱዬ ስንቴ ነው ሚሞቱት ግን? መሞታቸውን የዛሬ ወርም አርድተኘን ነበር ??", your response: "ገልቱዬ ስንቴ ነው ሚሞቱት ግን? ዛሬ ወርም አርደኘን ነበር ??"
     - Input (in Arabic): "ضاعت فلوسك يا دبه ببلاش", your response: "ضاعت مبلغك يا شخصاً بلبنة"
@@ -79,7 +79,7 @@ PROMPTS = {
   """
 }
 
-print(callLlamaApi(PROMPTS['v3.1'].format(phrase="holy shit , just finished the season and it is so good but so * dark * , especially at the end .", lang='en')))
+print(callLlamaApi(PROMPTS['v3.2'].format(phrase="holy shit , just finished the season and it is so good but so * dark * , especially at the end .", language=LANGUAGES['en'])))
 
 if len(sys.argv) != 2:
   raise Exception("Input csv file must be specified")
@@ -95,10 +95,10 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 for index, row in input.iterrows():
-  detoxified = callLlamaApi(PROMPTS['v3.1'].format(phrase=row['toxic_sentence'], lang=row['lang']))
+  detoxified = callLlamaApi(PROMPTS['v3.2'].format(phrase=row['toxic_sentence'], language=LANGUAGES[row['lang']]))
   if detoxified[0] == "\"":
     detoxified = detoxified[1:-1]
-  detoxified = re.sub(r'\(?Note:.*?$', '', detoxified)
+
   input.at[index, 'neutral_sentence'] = detoxified
   print(index, row['toxic_sentence'], detoxified)
 
