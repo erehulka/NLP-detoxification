@@ -207,8 +207,6 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 for index, row in input.iterrows():
-  if index < 3132:
-    continue
   if row['lang'] not in PROMPTS:
     continue
   detoxified = callLlamaApi(PROMPTS[row['lang']].format(phrase=row['toxic_sentence']))
