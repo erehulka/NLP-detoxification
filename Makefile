@@ -1,2 +1,2 @@
 install:
-	- mkdir src/outputs
+	- mkdir outputs

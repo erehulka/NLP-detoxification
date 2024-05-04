@@ -16,4 +16,5 @@ for index, row in input.iterrows():
   input.at[index, 'neutral_sentence'] = processed
 
 now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-input.to_csv(f'outputs/{now}_processed.tsv', sep='\t', index=False)
+new_df = input[['toxic_sentence', 'neutral_sentence', 'lang']]
+new_df.to_csv(f'outputs/{now}_processed.tsv', sep='\t', index=False)
