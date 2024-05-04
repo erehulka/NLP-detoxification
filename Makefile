@@ -2,5 +2,8 @@ install:
 	- mkdir outputs
 
 create_indices:
-	- rm -rf indices
-	python3 src/createIndex.py 'rag_index' indices/rag_index
+	- python3 src/createIndex.py 'rag_index' indices/rag_index
+
+run_rag: create_indices
+	export PYTHONPATH=$(pwd)
+	python3 src/rag.py inputs_multilingual.tsv
