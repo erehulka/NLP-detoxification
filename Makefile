@@ -6,4 +6,4 @@ create_indices:
 
 run_rag: create_indices
 	export PYTHONPATH=$(pwd)
-	python3 src/rag.py inputs_multilingual.tsv
+	python3 src/rag.py test_without_answers.tsv
