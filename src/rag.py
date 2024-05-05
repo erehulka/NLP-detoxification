@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 import signal
 import sys
 from chromadb.utils import embedding_functions
@@ -24,8 +25,8 @@ You are a text detoxifier. On input you receive a text which may be toxic or har
 Output only contains the detoxified text, nothing else like notes or additional information. You do not add any more context to the resulting text, which is not in the original text. Do not rewrite the original text too much, just either remove the toxic part completely, or replace it with some non-toxic words while preserving the meaning and context.
 The language of the input is {language} and the language of the response must be the same.
 Here are some examples what should be the output for given texts:
-{examples}
 
+{examples}
 
 Your output is only the detoxified text, you do not say anything else.
 
@@ -47,17 +48,24 @@ signal.signal(signal.SIGINT, signal_handler)
 
 index_name = "rag_index"
 index_path = "indices/rag_index"
-embedding_model = "all-MiniLM-L6-v2"
+embedding_model = "sentence-transformers/LaBSE"
 
-client = chromadb.PersistentClient(path=str(index_path))
-collection = client.get_collection(name=index_name)
+collections = {}
+for lang in LANGUAGES.keys():
+  index_path_full = Path(str(index_path) + '_' + lang)
+  index_name_full = index_name + '_' + lang
+
+  client = chromadb.PersistentClient(path=str(index_path_full))
+  collections[lang] = client.get_collection(name=index_name_full)
+
 embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=embedding_model)
 
 for index, row in input.iterrows():
+  collection = collections[row['lang']]
   results = collection.query(query_embeddings=embedding_fn([row['toxic_sentence']]), n_results=6)
   examples = ""
   for text, metadata in zip(*results['documents'], *results['metadatas']):
-      examples += f"Input: {text}\n\nPrediction: {metadata['neutral_sentence']}\n\n"
+      examples += f"Input: {text}\n\nOutput: {metadata['neutral_sentence']}\n\n"
 
   finalPrompt = PROMPT.format(
     language=LANGUAGES[row['lang']],
